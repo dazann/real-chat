@@ -1,0 +1,86 @@
+
+CREATING PROBLEMS LINE   61)    socket.emit('sendMessage',message,function(){console.log("Set UPDSFJ");setMessage('')});
+SOLVED ON DELETING console.log("Set UPDSFJ");
+
+import React,{useState, useEffect} from 'react';
+import queryString from 'query-string';
+import io from 'socket.io-client';
+import {Redirect} from 'react-router-dom';
+
+let socket;
+
+function Chat({location}) {
+
+  const [name,setName]=useState('');
+  const [room,setRoom]=useState('');
+  const [message,setMessage]=useState('');
+  const [messages,setMessages]=useState([]);
+
+  const ENDPOINT = 'http://localhost:5000/';
+  
+  
+  useEffect(()=>{
+    const {name,room} = queryString.parse(location.search);
+    
+    
+    socket = io(ENDPOINT, { transports : ['websocket'] });
+    
+    console.log("Page Started");
+    setName(name);
+    setRoom(room)
+
+    socket.emit('join',{name, room},()=>{
+      console.log("JOIN Callback");
+      return <Redirect to='/'/>
+      return "CALL";
+    });
+    return function cleanup() {
+      alert("CLEANUP");
+      console.log("CLEANUP")      
+    };
+
+  },[ENDPOINT, location.search])
+
+
+
+  useEffect(() => {
+    socket.on('message', message => {
+      setMessages(messages => [ ...messages, message ]);
+    });
+    
+}, []);
+
+
+
+
+  const sendMessage = (event)=>{
+    console.log(event,message);
+    event.preventDefault();
+    if(message)
+    {
+      console.log("MESSAGE SENT",socket)
+      socket.emit('sendMessage',message,function(){console.log("Set UPDSFJ");setMessage('')});
+    }
+
+  }
+
+  console.log("Message",message,messages);
+
+  return (
+    <>
+      <div>
+        <div>
+          
+        </div>
+        <div>
+          <div>
+          {messages.map((val,idx)=>{return <div key={idx}>{val.text} {idx}</div>})}
+        </div>
+          <input type="text" val={message} onChange={(event)=>setMessage(event.target.value)} onKeyPress={(event)=>event.key==='Enter'?sendMessage(event):null}/>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default Chat;
